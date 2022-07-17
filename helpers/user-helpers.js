@@ -38,23 +38,40 @@ module.exports = {
         })
     },
     addToCart:(proId,userId)=>{
+        let proObj={
+            item:ObjectId(proId),
+            quantity:1
+        }
         return new Promise (async(resolve,reject)=>{
             let userCart = await db.get().collection(collection.CART_COLLECTION).findOne({user:ObjectId(userId)})
             if(userCart){
+                let proExist=userCart.products.findIndex(product=> product.item==proId)
+                console.log(proExist);
+                if(proExist!=-1){
+                    db.get().collection(collection.CART_COLLECTION)
+                    .updateOne({user:ObjectId(userId),'products.item':ObjectId(proId)},
+                    {
+                        $inc:{'products.$.quantity':1}
+                    }
+                    ).then(()=>{
+                        resolve()
+                    })
+                }else{
                 db.get().collection(collection.CART_COLLECTION)
                 .updateOne({user:ObjectId(userId)},
                 {
                     
-                        $push:{products:ObjectId(proId)}
+                        $push:{products:proObj}
                     
                 }
                 ).then((response)=>{
                     resolve()
-                })           
+                })
+            }           
             }else{
                 let cartObj = {
                     user:ObjectId(userId),
-                    products:[ObjectId(proId)]
+                    products:[proObj]
                 }
                 db.get().collection(collection.CART_COLLECTION).insertOne(cartObj).then((response)=>{
                     resolve()
@@ -69,23 +86,33 @@ module.exports = {
                     $match:{user:ObjectId(userId)}
                 },
                 {
+                    $unwind:'$products'
+                },
+                {
+                    $project:{
+                        item:'$products.item',
+                        quantity:'$products.quantity'
+                    }
+                },
+                {
                     $lookup:{
-                        from:collection.PRODCUT_COLLECTION , 
-                        let:{prodList:'$products'} , 
-                        pipeline:[
-                            {
-                                $match:{
-                                    $expr:{
-                                        $in:['$_id', '$$prodList']
-                                    }
-                                }
-                            }
-                        ],
-                        as:'cartItems'
+                        from:collection.PRODCUT_COLLECTION,
+                        localField:'item',
+                        foreignField:'_id',
+                        as:'product' //array//
+                    }
+                },
+                {
+                    $project:{
+                        item:1,
+                        quantity:1,
+                        product:{$arrayElemAt:['$product',0]} //array to object//
                     }
                 }
+
             ]).toArray()
-                resolve(cartItems[0].cartItems)
+                console.log(cartItems);
+                resolve(cartItems)
         })
     },
     getCartCount:(userId)=>{
@@ -96,6 +123,32 @@ module.exports = {
                 count=cart.products.length
             }
             resolve(count)
+        })
+    },
+    changeProductQuantity:(details)=>{
+        count=parseInt(details.count)
+        quantity=parseInt(details.quantity)
+
+        return new Promise((resolve,reject)=>{
+            if(count==-1 && quantity==1){
+                db.get().collection(collection.CART_COLLECTION)
+                .updateOne({_id:ObjectId(details.cart)},
+                {
+                    $pull:{products:{item:ObjectId(details.product)}}
+                }
+                ).then((response)=>{
+                    resolve({removeProduct:true})
+                })
+            }else{
+            db.get().collection(collection.CART_COLLECTION)
+            .updateOne({_id:ObjectId(details.cart), 'products.item':ObjectId(details.product)},
+            {
+                $inc:{'products.$.quantity':count}
+            
+            }).then((response)=>{
+                resolve(true)
+            })
+            }   
         })
     }
 }
