@@ -31,11 +31,12 @@
             </tbody>
         </table>
         <hr>
+        {{#if totalValue}}
         <div class="float-right pr-5">
             <h5 class="float-left mr-5">Total Rs. <span id="total">{{totalValue}}</span></h5><br>
             <a href="/place-order" class="btn btn-success mt-3" style="width:100%;"><b>Place order</b></a>
         </div>
-
+        {{/if}}
     </div>
 </section>
 
