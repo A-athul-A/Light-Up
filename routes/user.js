@@ -7,7 +7,7 @@ const userHelpers = require('../helpers/user-helpers');
 
 
 const verifyLogin = (req, res, next) => {
-  if (req.session.user.loggedIn) {
+  if (req.session.userLoggedIn) {
     next()
   } else {
     res.redirect('/Login')
@@ -38,6 +38,7 @@ router.get('/Login', (req, res) => {
   }
 
 })
+
 router.get('/Signup', (req, res) => {
   res.render('user/Signup')
 })
@@ -46,7 +47,7 @@ router.post('/Signup', (req, res) => {
     console.log(response);
     
     req.session.user = response
-    req.session.user.loggedIn = true
+    req.session.userLoggedIn = true
     res.redirect("/")
   })
 
@@ -56,7 +57,7 @@ router.post('/Login', (req, res) => {
     if (response.status) {
       
       req.session.user = response.user
-      req.session.user.loggedIn = true
+      req.session.userLoggedIn = true
       res.redirect('/')
     } else {
       req.session.userLoginErr = "Invaild username or password"
@@ -66,7 +67,7 @@ router.post('/Login', (req, res) => {
 })
 router.get('/logout', (req, res) => {
   req.session.user=null
-  req.session.user.loggedIn=false
+  req.session.userLoggedIn=false
   res.redirect('/')
 })
 router.get('/cart', verifyLogin, async (req, res) => {
@@ -85,6 +86,7 @@ router.get("/add-to-cart/:id", verifyLogin, (req, res) => {
     res.json({ status: true })
   })
 })
+
 router.post("/change-product-quantity", (req, res, next) => {
 
   userHelpers.changeProductQuantity(req.body).then((response) => {

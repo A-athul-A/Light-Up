@@ -2,6 +2,7 @@ const { response } = require('express');
 var express = require('express');
 var router = express.Router();
 var productHelpers = require('../helpers/product-helpers')
+const adminHelpers = require('../helpers/admin-helpers');
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -51,6 +52,35 @@ router.post("/edit-product/:id",(req,res)=>{
       res.redirect("/admin/")
     }
   })
+})
+
+router.get('/Login', (req, res) => {
+  if (req.session.admin) {
+    res.redirect('/admin')
+  } else {
+    res.render('admin/Login', { "loginErr": req.session.adminLoginErr })
+    req.session.adminLoginErr = false
+  }
+
+})
+
+router.post('/Login', (req, res) => {
+  adminHelpers.doLogin(req.body).then((response) => {
+    if (response.status) {
+      
+      req.session.admin = response.admin
+      req.session.adminLoggedIn = true
+      res.redirect('/admin')
+    } else {
+      req.session.adminLoginErr = "Invaild username or password"
+      res.redirect('/Login')
+    }
+  })
+})
+router.get('/logout', (req, res) => {
+  req.session.admin=null
+  req.session.adminLoggedIn=false
+  res.redirect('/Login')
 })
 
 module.exports = router;

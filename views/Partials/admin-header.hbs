@@ -23,6 +23,21 @@
           {{!-- <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
           <button class="btn btn-success my-2 my-sm-0" type="submit">Search</button> --}}
         </form>
+        <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
+          aria-haspopup="true" aria-expanded="false">
+         
+            {{admin.Name}}
+            
+        </button>
+        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          {{#if user}}
+            <a class="dropdown-item" href="/Logout">Log out</a>    
+          {{/if}}
+          
+
+        </div>
+      </div>
       </div>
     </nav>
   </header>
