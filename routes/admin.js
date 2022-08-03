@@ -4,7 +4,7 @@ var router = express.Router();
 var productHelpers = require('../helpers/product-helpers')
 const adminHelpers = require('../helpers/admin-helpers');
 
-/* GET users listing. */
+/* GET admin listing. */
 router.get('/', function (req, res, next) {
   productHelpers.getAllProcucts().then((products) => {
     console.log(products);
@@ -12,6 +12,8 @@ router.get('/', function (req, res, next) {
 
   })
 });
+
+/* -------------- product management  ------------------ */
 router.get('/add-products', function (req, res) {
   res.render('admin/add-products', { admin: true })
 })
@@ -22,38 +24,39 @@ router.post('/add-products', (req, res) => {
     console.log(id);
     image.mv('./public/images/' + id + '.jpg', (err, done) => {
       if (!err) {
-        res.render("admin/add-products", { admin: true})
+        res.render("admin/add-products", { admin: true })
       } else {
         console.log(err);
       }
     })
   })
 })
-router.get("/delete-product/:id", (req,res)=>{
-  let proId=req.params.id
+router.get("/delete-product/:id", (req, res) => {
+  let proId = req.params.id
   console.log(proId)
-  productHelpers.deleteProduct(proId).then((response)=>{
+  productHelpers.deleteProduct(proId).then((response) => {
     res.redirect("/admin/")
   })
 })
-router.get("/edit-product/:id",async(req,res)=>{
+router.get("/edit-product/:id", async (req, res) => {
   let product = await productHelpers.getProductDetails(req.params.id)
   console.log(product);
-  res.render("admin/edit-product",{product, admin:true})
+  res.render("admin/edit-product", { product, admin: true })
 })
-router.post("/edit-product/:id",(req,res)=>{
-  let id=req.params.id
-  productHelpers.updateProduct(req.params.id,req.body).then(()=>{
+router.post("/edit-product/:id", (req, res) => {
+  let id = req.params.id
+  productHelpers.updateProduct(req.params.id, req.body).then(() => {
     res.redirect("/admin/")
-    if(req.files.Image){
-      let image=req.files.Image
+    if (req.files.Image) {
+      let image = req.files.Image
       image.mv('./public/images/' + id + '.jpg')
-    }else{
+    } else {
       res.redirect("/admin/")
     }
   })
 })
 
+/* -------------- admin login/logout  ------------------ */
 router.get('/Login', (req, res) => {
   if (req.session.admin) {
     res.redirect('/admin')
@@ -67,7 +70,7 @@ router.get('/Login', (req, res) => {
 router.post('/Login', (req, res) => {
   adminHelpers.doLogin(req.body).then((response) => {
     if (response.status) {
-      
+
       req.session.admin = response.admin
       req.session.adminLoggedIn = true
       res.redirect('/admin')
@@ -78,8 +81,8 @@ router.post('/Login', (req, res) => {
   })
 })
 router.get('/logout', (req, res) => {
-  req.session.admin=null
-  req.session.adminLoggedIn=false
+  req.session.admin = null
+  req.session.adminLoggedIn = false
   res.redirect('/Login')
 })
 

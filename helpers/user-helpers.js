@@ -85,6 +85,7 @@ module.exports = {
             }
         })
     },
+    /* --------------  cart collection ------------------ */
     getCartProducts: (userId) => {
         return new Promise(async (resolve, reject) => {
             let cartItems = await db.get().collection(collection.CART_COLLECTION).aggregate([
@@ -105,14 +106,14 @@ module.exports = {
                         from: collection.PRODCUT_COLLECTION,
                         localField: 'item',
                         foreignField: '_id',
-                        as: 'product' //array//
+                        as: 'product' 
                     }
                 },
                 {
                     $project: {
                         item: 1,
                         quantity: 1,
-                        product: { $arrayElemAt: ['$product', 0] } //array to object//
+                        product: { $arrayElemAt: ['$product', 0] } 
                     }
                 }
 
@@ -199,6 +200,8 @@ module.exports = {
             resolve(total[0].total)
         })
     },
+
+    /* --------------  place order ------------------ */
     plceOrder: (order, products, total) => {
         return new Promise(async (resolve, reject) => {
             console.log(order, products, total);
@@ -258,14 +261,14 @@ module.exports = {
                         from: collection.PRODCUT_COLLECTION,
                         localField: 'item',
                         foreignField: '_id',
-                        as: 'product' //array//
+                        as: 'product' 
                     }
                 },
                 {
                     $project: {
                         item: 1,
                         quantity: 1,
-                        product: { $arrayElemAt: ['$product', 0] } //array to object//
+                        product: { $arrayElemAt: ['$product', 0] } 
                     }
                 }
 
@@ -274,11 +277,13 @@ module.exports = {
             resolve(orderItems)
         })
     },
+
+    /* -------------- payment section  ------------------ */
     generateRazrorpay: (orderId, total) => {
         return new Promise((resolve, reject) => {
 
             options = {
-                amount: total*100,
+                amount: total * 100,
                 currency: 'INR',
                 receipt: "" + orderId
             };
@@ -296,27 +301,27 @@ module.exports = {
         return new Promise((resolve, reject) => {
             const crypto = require('crypto');
             let hmac = crypto.createHmac('sha256', 'd7LmhEq9dN8CrOUqSnFbHwcF')
-            hmac.update(details['payment[razorpay_order_id]']+'|'+details['payment[razorpay_payment_id]'])
-            hmac=hmac.digest('hex')
-            if(hmac===details['payment[razorpay_signature]']){
+            hmac.update(details['payment[razorpay_order_id]'] + '|' + details['payment[razorpay_payment_id]'])
+            hmac = hmac.digest('hex')
+            if (hmac === details['payment[razorpay_signature]']) {
                 resolve()
-            }else{
+            } else {
                 reject()
             }
         })
     },
-    changePaymentStatus:(orderId)=>{
-        return new Promise((resolve,reject)=>{
+    changePaymentStatus: (orderId) => {
+        return new Promise((resolve, reject) => {
             db.get().collection(collection.ORDER_COLLECTION)
-            .updateOne({_id:ObjectId(orderId)},
-            {
-                $set:{
-                    status:'Placed'
-                }
-            }
-            ).then(()=>{
-                resolve()
-            })
+                .updateOne({ _id: ObjectId(orderId) },
+                    {
+                        $set: {
+                            status: 'Placed'
+                        }
+                    }
+                ).then(() => {
+                    resolve()
+                })
         })
     }
 }

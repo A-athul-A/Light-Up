@@ -13,7 +13,7 @@ const verifyLogin = (req, res, next) => {
     res.redirect('/Login')
   }
 }
- 
+
 /* GET home page. */
 router.get('/', async function (req, res, next) {
   let user = req.session.user
@@ -29,6 +29,8 @@ router.get('/', async function (req, res, next) {
 
   })
 });
+
+/* -------------- user login/logout  ------------------ */
 router.get('/Login', (req, res) => {
   if (req.session.user) {
     res.redirect('/')
@@ -45,7 +47,7 @@ router.get('/Signup', (req, res) => {
 router.post('/Signup', (req, res) => {
   userHelpers.DoSignup(req.body).then((response) => {
     console.log(response);
-    
+
     req.session.user = response
     req.session.userLoggedIn = true
     res.redirect("/")
@@ -55,7 +57,7 @@ router.post('/Signup', (req, res) => {
 router.post('/Login', (req, res) => {
   userHelpers.doLogin(req.body).then((response) => {
     if (response.status) {
-      
+
       req.session.user = response.user
       req.session.userLoggedIn = true
       res.redirect('/')
@@ -66,10 +68,12 @@ router.post('/Login', (req, res) => {
   })
 })
 router.get('/logout', (req, res) => {
-  req.session.user=null
-  req.session.userLoggedIn=false
+  req.session.user = null
+  req.session.userLoggedIn = false
   res.redirect('/')
 })
+
+/* -------------- user cart  ------------------ */
 router.get('/cart', verifyLogin, async (req, res) => {
   let products = await userHelpers.getCartProducts(req.session.user._id)
   let totalValue = 0
@@ -94,6 +98,8 @@ router.post("/change-product-quantity", (req, res, next) => {
 
   })
 })
+
+/* --------------  place order ------------------ */
 router.get('/place-order', verifyLogin, async (req, res) => {
   let total = await userHelpers.getTotalAmount(req.session.user._id)
   res.render('user/place-order', { total, user: req.session.user })
@@ -109,7 +115,6 @@ router.post('/place-order', async (req, res) => {
         res.json(response)
       })
     }
-    //res.json({status:true})
   })
   console.log(req.body);
 })
@@ -125,6 +130,8 @@ router.get('/order-list/:id', verifyLogin, async (req, res) => {
   console.log(products);
   res.render('user/order-list', { user: req.session.user, products })
 })
+
+/* -------------- user payment  ------------------ */
 router.post('/verify-payment', (req, res) => {
   console.log(req.body);
   userHelpers.verifyPayment(req.body).then(() => {
@@ -133,7 +140,7 @@ router.post('/verify-payment', (req, res) => {
     })
   }).catch((err) => {
     console.log(err);
-    res.json({ status:false,errMsg:'' })
+    res.json({ status: false, errMsg: '' })
   })
 })
 
